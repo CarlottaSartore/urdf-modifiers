@@ -27,12 +27,20 @@ class JointModifier(modifier.Modifier):
             return joint_list[0]
         else:
             return None
-
-    def modify(self, modifications = None):
+    def modify(self, modifications = None, modif = None):
         """Performs the dimension and density modifications to the current link"""
-        significant_length = self.get_parent_significant_length()
-        self.modify_origin(significant_length)
-
+        xyz_rpy = matrix_to_xyz_rpy(self.element.origin)
+        original_z = xyz_rpy[2]
+        xyz_rpy[2] = original_z * modif
+        self.element.origin = xyz_rpy_to_matrix(xyz_rpy) 
+        # significant_length = self.get_parent_significant_length()
+        # self.modify_origin(modif*significant_length)
+        
+    def modify_joint_type(self, joint_type): 
+        if(joint_type == 0.0): 
+            self.element.joint_type = "revolute"
+        else:
+            self.element.joint_type = "prismatic"
     def get_parent_significant_length(self):
         """Gets the significant length of the parent link that defines the new position of the joint"""
         parent_visual_obj = LinkModifier.get_visual_static(self.parent)
