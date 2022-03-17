@@ -48,4 +48,10 @@ class JointModifier(modifier.Modifier):
                 elif (self.axis == Side.Z):
                     xyz_rpy[2] = original_z * modifications.position.value
             self.element.origin = xyz_rpy_to_matrix(xyz_rpy) 
+            
+    def modify_joint_type(self, joint_type): 
+        if(joint_type == 0.0): 
+            self.element.joint_type = "revolute"
+        else:
+            self.element.joint_type = "prismatic"
                 
