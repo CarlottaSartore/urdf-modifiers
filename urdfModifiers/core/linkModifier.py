@@ -8,11 +8,28 @@ from urdfModifiers.geometry import *
 @dataclass
 class LinkModifier(modifier.Modifier):
     """Class to modify links in a URDF"""
-    def __init__(self, link, origin_modifier, dimension = None, flip_direction = True, calculate_origin_from_dimensions = True):
+    def __init__(self, robot, link, origin_modifier, dimension = None, flip_direction = True, calculate_origin_from_dimensions = True):
         super().__init__(link, origin_modifier, geometry.RobotElement.LINK)
         self.dimension = dimension
-        self.flip_direction = flip_direction
         self.calculate_origin_from_dimensions = calculate_origin_from_dimensions
+        self.robot = robot
+        self.origin_modifier = self.compute_origin_modifier()
+        self.flip_direction = (True if math.copysign(1,self.child_joint_origin[2]) == 1 else False)
+        
+    def compute_origin_modifier(self): 
+        parent_joint_list = [corresponding_joint for corresponding_joint in self.robot.joints if corresponding_joint.child == self.link.name]
+        parent_joint = (parent_joint_list[0] if parent_joint_list else None) 
+        child_joint_list = [corresponding_joint for corresponding_joint in self.robot.joits if corresponding_joint.parent == self.link.name]
+        parent_joint_origin = matrix_to_xyz_rpy(parent_joint.origin) 
+        child_joint = (child_joint_list[0] if child_joint_list else None)
+        self.child_joint_origin = matrix_to_xyz_rpy(child_joint.origin)
+        visual_obj = self.get_visual()
+        shape_visual_origin = matrix_to_xyz_rpy(visual_obj.origin)
+        v_o = shape_visual_origin[2] - parent_joint_origin[2]
+        geometry_type, visual_data = self.get_geometry(visual_obj)
+        l = visual_data.size[2]
+        return v_o- l/2 * math.copysign(1,self.child_joint_origin[2])
+        
 
     @classmethod
     def from_name(cls, link_name, robot, origin_modifier, dimension = None, flip_direction = True, calculate_origin_from_dimensions = True):

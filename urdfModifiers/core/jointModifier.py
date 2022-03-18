@@ -2,14 +2,17 @@ from urdfModifiers.core import modifier
 from urdfModifiers.core.linkModifier import LinkModifier
 from urdfModifiers.geometry.geometry import *
 from urdfpy import xyz_rpy_to_matrix, matrix_to_xyz_rpy 
+import math 
 
 class JointModifier(modifier.Modifier):
     """Class to modify joints in a URDF"""
-    def __init__(self, joint, origin_modifier, parent, take_half_length = False, flip_direction = True):
+    def __init__(self, joint, origin_modifier, parent,robot, take_half_length = False, flip_direction = True):
         super().__init__(joint, origin_modifier, RobotElement.JOINT)
-        self.take_half_length = take_half_length
-        self.flip_direction = flip_direction
+        self.take_half_length = False
         self.parent = parent
+        self.robot = robot
+        self.origin_modifier = self.compute_origin_modifier()
+        self.flip_direction = (True if math.copysign(1,self.child_joint_origin[2]) == 1 else False)
         
 
     @classmethod
@@ -18,7 +21,21 @@ class JointModifier(modifier.Modifier):
         joint = JointModifier.get_element_by_name(joint_name, robot)
         parent = LinkModifier.get_element_by_name(joint.parent, robot)
         return cls(joint, origin_modifier, parent, take_half_length, flip_direction)
-
+    
+    def compute_origin_modifier(self): 
+        parent_joint_list = [corresponding_joint for corresponding_joint in self.robot.joints if corresponding_joint.child == self.link.name]
+        parent_joint = (parent_joint_list[0] if parent_joint_list else None) 
+        child_joint_list = [corresponding_joint for corresponding_joint in self.robot.joits if corresponding_joint.parent == self.link.name]
+        parent_joint_origin = matrix_to_xyz_rpy(parent_joint.origin) 
+        child_joint = (child_joint_list[0] if child_joint_list else None)
+        self.child_joint_origin = matrix_to_xyz_rpy(child_joint.origin)
+        visual_obj = self.get_visual()
+        shape_visual_origin = matrix_to_xyz_rpy(visual_obj.origin)
+        v_o = shape_visual_origin[2] - parent_joint_origin[2]
+        geometry_type, visual_data = self.get_geometry(visual_obj)
+        l = visual_data.size[2]
+        return v_o + l/2*math.copysign(1, self.child_joint_origin[2]) - self.child_joint_origin[2]
+        
     @staticmethod
     def get_element_by_name(joint_name, robot):
         """Explores the robot looking for the joint whose name matches the first argument"""
