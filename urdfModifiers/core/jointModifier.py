@@ -1,7 +1,7 @@
 from urdfModifiers.core import modifier
 from urdfModifiers.geometry.geometry import *
 from urdfpy import xyz_rpy_to_matrix, matrix_to_xyz_rpy 
-
+import copy
 class JointModifier(modifier.Modifier):
     """Class to modify joints in a URDF"""
     def __init__(self, joint, axis = None):
@@ -50,8 +50,17 @@ class JointModifier(modifier.Modifier):
             self.element.origin = xyz_rpy_to_matrix(xyz_rpy) 
             
     def modify_joint_type(self, joint_type): 
+        joint_limits = 0.02
         if(joint_type == 0.0): 
             self.element.joint_type = "revolute"
         else:
             self.element.joint_type = "prismatic"
+            if(abs(self.element.axis[2]) ==1):
+                xyz_rpy = matrix_to_xyz_rpy(self.element.origin)
+                new_origin = copy.deepcopy(xyz_rpy)
+                original_x = xyz_rpy[0]
+                original_y = xyz_rpy[1]
+                original_z = xyz_rpy[2]
+                new_origin[:3] = xyz_rpy[:3] + joint_limits*abs(self.element.axis) 
+                self.element.origin = xyz_rpy_to_matrix(new_origin)
                 
