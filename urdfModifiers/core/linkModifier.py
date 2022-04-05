@@ -4,6 +4,9 @@ from urdfModifiers.core import modifier
 import math
 import numpy as np
 from urdfModifiers.geometry import * 
+from urdfpy import Cylinder as cylinderUrdfPy
+from urdfpy import Box as boxUrdfPy 
+from urdfpy import Sphere as sphereUrdfPy 
 
 @dataclass
 class LinkModifier(modifier.Modifier):
@@ -67,7 +70,11 @@ class LinkModifier(modifier.Modifier):
                 self.set_origin_position(modifications.position.value)
             else:
                 self.set_origin_position(original_position * modifications.position.value)
+        if modifications.geometry_type: 
+            self.set_geometry_type(modifications.geometry_type, modifications.geometry_type_dimension)
+            self.set_density(original_density)
         self.update_inertia()
+
 
     def get_visual(self):
         """Returns the visual object of a link"""
@@ -173,6 +180,32 @@ class LinkModifier(modifier.Modifier):
                 inertia.origin = xyz_rpy_to_matrix(origin)
         else:
             raise Exception(f"Error modifying link {self.element.name}'s position: no axis")
+
+    def set_geometry_type(self, geometry_type, dimension): 
+        if(geometry_type == geometry.Geometry.BOX): 
+            print(self.get_visual())
+            visuals_new = boxUrdfPy(dimension)
+            # visuals_new.size = dimension
+            self.element.visuals[0].geometry.box = visuals_new
+            self.element.visuals[0].geometry.cylinder = None
+            self.element.visuals[0].geometry.sphere = None
+            print(self.get_visual())
+        elif(geometry_type == geometry.Geometry.CYLINDER): 
+            visuals_new = cylinderUrdfPy
+            visuals_new.length = dimension[0]
+            visuals_new.radius = dimension[1]
+            self.element.visuals[0].geometry.cylinder = visuals_new
+            self.element.visuals[0].geometry.sphere = None
+            self.element.visuals[0].geometry.box = None
+        elif(geometry_type == geometry.Geometry.SPHERE): 
+            visuals_new = sphereUrdfPy
+            visuals_new.radius = dimension[0]
+            self.element.visuals[0].geometry.sphere = visuals_new
+            self.element.visuals[0].geometry.box = None
+            self.element.visuals[0].geometry.cylinder = None 
+
+        return   
+
 
     @staticmethod
     def get_visual_static(link):

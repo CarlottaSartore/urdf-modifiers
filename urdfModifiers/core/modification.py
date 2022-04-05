@@ -19,6 +19,8 @@ class Modification:
         self.dimension = None
         self.radius = None
         self.position = None
+        self.geometry_type = None
+        self.geometry_type_dimension = None 
         pass
 
     @classmethod
@@ -82,6 +84,10 @@ class Modification:
     def add_position(self, value, absolute):
         """Adds a modification of the position of the origin"""
         self.position = ModificationType(value, absolute)
+    
+    def add_geometry_type(self,value,dimension):
+        self.geometry_type = value 
+        self.geometry_type_dimension = dimension
 
     def __str__(self):
         print_message = "Modification class with the following parameters: "
