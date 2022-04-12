@@ -182,13 +182,29 @@ class LinkModifier(modifier.Modifier):
             raise Exception(f"Error modifying link {self.element.name}'s position: no axis")
 
     def set_geometry_type(self, geometry_type, dimension): 
+        new_lenght = 0.0
+        new_width = 0.0
+        old_type, old_dimension  = self.get_geometry(self.get_visual())
+        if(old_type == geometry.Geometry.SPHERE): 
+            new_lenght = 2*old_dimension.radius
+            new_width = 2*old_dimension.radius
+        elif(old_type == geometry.Geometry.CYLINDER): 
+            new_lenght = 2*old_dimension.radius-0.01
+            new_width = 2*old_dimension.radius-0.01
+        elif(old_type == geometry.Geometry.BOX): 
+            new_lenght = old_dimension.size[0]
+            new_width = old_dimension.size[1]
         if(geometry_type == geometry.Geometry.BOX): 
             print(self.get_visual())
-            visuals_new = boxUrdfPy(dimension)
+            dimension_new = [new_lenght, new_width, dimension]
+            print(dimension_new)
+            visuals_new = boxUrdfPy(dimension_new)
             # visuals_new.size = dimension
             self.element.visuals[0].geometry.box = visuals_new
             self.element.visuals[0].geometry.cylinder = None
             self.element.visuals[0].geometry.sphere = None
+            old_origin = self.get_origin_position()
+            self.set_origin_position(dimension/2*math.copysign(1,old_origin))
             print(self.get_visual())
         elif(geometry_type == geometry.Geometry.CYLINDER): 
             visuals_new = cylinderUrdfPy
