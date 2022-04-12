@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from operator import length_hint
 from urdfpy import xyz_rpy_to_matrix, matrix_to_xyz_rpy
 from urdfModifiers.core import modifier
 import math
@@ -165,7 +166,8 @@ class LinkModifier(modifier.Modifier):
         inertia = self.element.inertial
 
         origin = matrix_to_xyz_rpy(visual_object.origin)
-
+        # origin[3:] = [0.0,1.6,0.0]
+        # origin[3:] = [1.6, 0.0, 0.0]
         if (self.axis is not None):
             if (self.axis == geometry.Side.X):
                 origin[0] = value
@@ -181,6 +183,14 @@ class LinkModifier(modifier.Modifier):
         else:
             raise Exception(f"Error modifying link {self.element.name}'s position: no axis")
 
+    def modify_origin_rpy(self,rpy): 
+        visual_object = self.get_visual()
+        origin = matrix_to_xyz_rpy(visual_object.origin)
+        # origin[3:] = [0.0,1.6,0.0]
+        # origin[3:] = [1.6, 0.0, 0.0]
+        origin[3:] = rpy
+        visual_object.origin = xyz_rpy_to_matrix(origin)
+    
     def set_geometry_type(self, geometry_type, dimension): 
         new_lenght = 0.0
         new_width = 0.0
@@ -207,12 +217,20 @@ class LinkModifier(modifier.Modifier):
             self.set_origin_position(dimension/2*math.copysign(1,old_origin))
             print(self.get_visual())
         elif(geometry_type == geometry.Geometry.CYLINDER): 
-            visuals_new = cylinderUrdfPy
-            visuals_new.length = dimension[0]
-            visuals_new.radius = dimension[1]
+            
+            length = dimension
+            radius = 0.075/2
+            
+            visuals_new = cylinderUrdfPy(radius=radius, length=length)
+            print("radius", radius, "length", length)
+            print("radius", visuals_new.radius, 'length', visuals_new.length)
             self.element.visuals[0].geometry.cylinder = visuals_new
+            print('radius', self.element.visuals[0].geometry.cylinder.radius)
+            print("lenght", self.element.visuals[0].geometry.cylinder.length)
             self.element.visuals[0].geometry.sphere = None
             self.element.visuals[0].geometry.box = None
+            old_origin = self.get_origin_position()
+            self.set_origin_position(0.0)
         elif(geometry_type == geometry.Geometry.SPHERE): 
             visuals_new = sphereUrdfPy
             visuals_new.radius = dimension[0]
