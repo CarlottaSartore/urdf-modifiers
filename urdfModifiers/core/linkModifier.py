@@ -79,7 +79,10 @@ class LinkModifier(modifier.Modifier):
 
     def get_significant_length(self):
         """Gets the significant length for a cylinder or box geometry"""
-        geometry_type, visual_data = self.get_geometry(self.get_visual())
+        visuals = self.get_visual()
+        geometry_type, visual_data = self.get_geometry(visuals)
+        xyz_rpy = matrix_to_xyz_rpy(visuals.origin) 
+        
         if (geometry_type == geometry.Geometry.BOX):
             if (self.axis is not None):
                 if (self.axis == geometry.Side.X):
@@ -91,7 +94,10 @@ class LinkModifier(modifier.Modifier):
             else:
                 raise Exception(f"Error getting length for link {self.element.name}'s volume: Box geometry with no axis")
         elif (geometry_type == geometry.Geometry.CYLINDER):
-            return visual_data.length
+            if(xyz_rpy[3]< 0.0 or xyz_rpy[4]> 0.0):
+                return 2*visual_data.radius     
+            else: 
+                return visual_data.length
         elif (geometry_type == geometry.Geometry.SPHERE):
             return visual_data.radius
         else:
