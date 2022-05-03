@@ -187,7 +187,6 @@ class FixedOffsetModifier():
 
     def modify(self, modifications):
         """Performs the modifications in the link-joint setup"""
-
         trivial_modifications = Modification()
         if modifications.radius:
             trivial_modifications.add_radius(modifications.radius.value, modifications.radius.absolute)
@@ -195,50 +194,41 @@ class FixedOffsetModifier():
             trivial_modifications.add_density(modifications.density.value, modifications.density.absolute)
         if modifications.mass:
             trivial_modifications.add_mass(modifications.mass.value, modifications.mass.absolute)
-        
         self.link_modifier.modify(trivial_modifications)
         if modifications.dimension and len(modifications.dimension.value)>1:
             visuals = self.link_modifier.get_visual()
             geometry_type, visual_data = self.get_geometry(visuals)
             if(modifications.dimension.absolute):
                 if(geometry_type == geometry.Geometry.CYLINDER):
-                    print(self.link_modifier.element.visuals[0].geometry.cylinder.length)
-                    print(self.link_modifier.element.visuals[0].geometry.cylinder.radius)
-                     
                     self.link_modifier.element.visuals[0].geometry.cylinder.length = modifications.dimension.value[0]
                     self.link_modifier.element.visuals[0].geometry.cylinder.radius = modifications.dimension.value[1]
                     new_length = self.get_significant_length()
-                    print(self.link_modifier.element.visuals[0])
-                    print(self.link_modifier.element.visuals[0].geometry.cylinder.length)
-                    print(self.link_modifier.element.visuals[0].geometry.cylinder.radius)
-                     
                 if(geometry_type == geometry.Geometry.BOX):
-                    self.link_modifier.element.visuals[0].size[0] = modifications.dimension.value[0]
-                    self.link_modifier.element.visuals[0].size[1] = modifications.dimension.value[1]
-                    self.link_modifier.element.visuals[0].size[2] = modifications.dimension.value[2]
+                    self.link_modifier.element.visuals[0].geometry.box.size[0] = modifications.dimension.value[0]
+                    self.link_modifier.element.visuals[0].geometry.box.size[1] = modifications.dimension.value[1]
+                    self.link_modifier.element.visuals[0].geometry.box.size[2] = modifications.dimension.value[2]
                     new_length = self.get_significant_length()
                     self.change_dimension_and_keep_offsets(new_length)
                 if(geometry_type == geometry.Geometry.SPHERE):
-                    self.link_modifier.element.visuals[0].radius = modification.dimension.value[0]
+                    self.link_modifier.element.visuals[0].geometry.sphere.radius = modification.dimension.value[0]
                     new_length = self.get_significant_length()
                     self.change_dimension_and_keep_offsets(new_length)
             else: 
                 if(geometry_type == geometry.Geometry.CYLINDER): 
-                    self.link_modifier.element.visuals[0].length = modifications.dimension.value[0]*self.element.visuals[0].length
-                    self.link_modifier.element.visuals[0].radius = modifications.dimension.value[1]*self.element.visuals[0].radius
+                    self.link_modifier.element.visuals[0].geometry.cylinder.length = modifications.dimension.value[0]*self.link_modifier.element.visuals[0].geometry.cylinder.length
+                    self.link_modifier.element.visuals[0].geometry.cylinder.radius = modifications.dimension.value[1]*self.link_modifier.element.visuals[0].geometry.cylinder.radius
                     new_length = self.get_significant_length()
                     self.change_dimension_and_keep_offsets(new_length)
                 if(geometry_type == geometry.Geometry.BOX):
-                    self.link_modifier.element.visuals[0].size[0] = modifications.dimension.value[0]*self.element.visuals[0].size[0]
-                    self.link_modifier.element.visuals[0].size[1] = modifications.dimension.value[1]*self.element.visuals[0].size[1]
-                    self.link_modifier.element.visuals[0].size[2] = modifications.dimension.value[2]*self.element.visuals[0].size[2]
+                    self.link_modifier.element.visuals[0].geometry.box.size[0] = modifications.dimension.value[0]*self.link_modifier.element.visuals[0].geometry.box.size[0]
+                    self.link_modifier.element.visuals[0].geometry.box.size[1] = modifications.dimension.value[1]*self.link_modifier.element.visuals[0].geometry.box.size[1]
+                    self.link_modifier.element.visuals[0].geometry.box.size[2] = modifications.dimension.value[2]*self.link_modifier.element.visuals[0].geometry.box.size[2]
                     new_length = self.get_significant_length()
                     self.change_dimension_and_keep_offsets(new_length)
                 if(geometry_type == geometry.Geometry.SPHERE):
-                    self.link_modifier.element.visuals[0].radius = modification.dimension.value[0]*self.element.visuals[0].radius
+                    self.link_modifier.element.visuals[0].geometry.sphere.radius = modification.dimension.value[0]*self.link_modifier.element.visuals[0].geometry.sphere.radius
                     new_length = self.get_significant_length()
                     self.change_dimension_and_keep_offsets(new_length)
-
         elif modifications.dimension:
             original_length = self.get_significant_length()
             if modifications.dimension.absolute:

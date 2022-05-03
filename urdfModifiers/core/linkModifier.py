@@ -197,7 +197,6 @@ class LinkModifier(modifier.Modifier):
         if (geometry_holder.geometry.sphere is not None):
             return [geometry.Geometry.SPHERE, geometry_holder.geometry.sphere]
         
-
     def calculate_volume(self, geometry_type, visual_data):
         """Calculates volume with the formula that corresponds to the geometry"""
         if (geometry_type == geometry.Geometry.BOX):
