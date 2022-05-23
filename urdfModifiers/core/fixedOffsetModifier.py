@@ -195,7 +195,7 @@ class FixedOffsetModifier():
         if modifications.mass:
             trivial_modifications.add_mass(modifications.mass.value, modifications.mass.absolute)
         self.link_modifier.modify(trivial_modifications)
-        if modifications.dimension and len(modifications.dimension.value)>1:
+        if modifications.dimension:
             visuals = self.link_modifier.get_visual()
             geometry_type, visual_data = self.get_geometry(visuals)
             if(modifications.dimension.absolute):
@@ -229,12 +229,12 @@ class FixedOffsetModifier():
                     self.link_modifier.element.visuals[0].geometry.sphere.radius = modification.dimension.value[0]*self.link_modifier.element.visuals[0].geometry.sphere.radius
                     new_length = self.get_significant_length()
                     self.change_dimension_and_keep_offsets(new_length)
-        elif modifications.dimension:
-            original_length = self.get_significant_length()
-            if modifications.dimension.absolute:
-                self.change_dimension_and_keep_offsets(modifications.dimension.value)
-            else:
-                self.change_dimension_and_keep_offsets(original_length * modifications.dimension.value)
+        # elif modifications.dimension:
+        #     original_length = self.get_significant_length()
+        #     if modifications.dimension.absolute:
+        #         self.change_dimension_and_keep_offsets(modifications.dimension.value)
+        #     else:
+        #         self.change_dimension_and_keep_offsets(original_length * modifications.dimension.value)
 
     def change_dimension_and_keep_offsets(self, new_length):
         """Changes the dimension of the link while keeping the offset between it and both parent and child joints"""
