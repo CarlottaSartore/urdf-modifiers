@@ -102,6 +102,7 @@ class FixedOffsetModifier():
         self.parent_joint = (parent_joint_list[0] if parent_joint_list else None)
         self.child_joint_list = [corresponding_joint for corresponding_joint in robot.joints if corresponding_joint.parent == link.name]
         self.joint_modifier_list = [JointModifier(item, axis = Side.Z) for item in self.child_joint_list]
+        self.parent_joint_offset, self.child_joint_offset = self.calculate_offsets()
         # self.check_if_z_parallel()
 
     @classmethod
@@ -172,7 +173,7 @@ class FixedOffsetModifier():
 
         # Using formula: s_o = v_o - v_l / 2
         if self.parent_joint:
-            parent_joint_offset = Offset(joint=self.parent_joint, z= link_visual_origin_z - link_length / 2)
+            parent_joint_offset = Offset(joint=self.parent_joint, z= (link_visual_origin_z - link_length / 2))
         else:
             parent_joint_offset = None
         
@@ -181,8 +182,9 @@ class FixedOffsetModifier():
             # Using formula: e_o = v_o + v_l * sign(j_o) / 2 - j_o
             child_joint_origin = self.get_joint_origin(item)
             child_joint_origin_z = child_joint_origin[2]
-            child_joint_offset.append(Offset(joint=item, z = link_visual_origin_z + link_length / 2 - child_joint_origin_z))     
-                
+            # child_joint_offset.append(Offset(joint=item, z = link_visual_origin_z + link_length/ 2*math.copysign(1, child_joint_origin_z) - child_joint_origin_z))     
+            # child_joint_offset.append(Offset(joint=item, z = parent_joint_offset.z +link_length*math.copysign(1,child_joint_origin_z) - child_joint_origin_z*math.copysign(1,child_joint_origin_z)))
+            child_joint_offset.append(Offset(joint = item, z = link_length+ parent_joint_offset.z - child_joint_origin_z*math.copysign(1,child_joint_origin_z)))
         return parent_joint_offset, child_joint_offset
 
     def modify(self, modifications):
@@ -203,6 +205,7 @@ class FixedOffsetModifier():
                     self.link_modifier.element.visuals[0].geometry.cylinder.length = modifications.dimension.value[0]
                     self.link_modifier.element.visuals[0].geometry.cylinder.radius = modifications.dimension.value[1]
                     new_length = self.get_significant_length()
+                    self.change_dimension_and_keep_offsets(new_length)
                 if(geometry_type == geometry.Geometry.BOX):
                     self.link_modifier.element.visuals[0].geometry.box.size[0] = modifications.dimension.value[0]
                     self.link_modifier.element.visuals[0].geometry.box.size[1] = modifications.dimension.value[1]
@@ -215,10 +218,22 @@ class FixedOffsetModifier():
                     self.change_dimension_and_keep_offsets(new_length)
             else: 
                 if(geometry_type == geometry.Geometry.CYLINDER): 
+                    if(self.link_modifier.element.name == "r_lower_leg"):
+                        print("**** OLD ****")
+                        print("lower leg")
+                        print("Lenght", self.link_modifier.element.visuals[0].geometry.cylinder.length)
+                        print("Radius",self.link_modifier.element.visuals[0].geometry.cylinder.radius )
+                        print("Modification", modifications.dimension.value)
                     self.link_modifier.element.visuals[0].geometry.cylinder.length = modifications.dimension.value[0]*self.link_modifier.element.visuals[0].geometry.cylinder.length
                     self.link_modifier.element.visuals[0].geometry.cylinder.radius = modifications.dimension.value[1]*self.link_modifier.element.visuals[0].geometry.cylinder.radius
                     new_length = self.get_significant_length()
+                    if(self.link_modifier.element.name == "r_lower_leg"):
+                        print("*** NEW *****")
+                        print("Lenght", self.link_modifier.element.visuals[0].geometry.cylinder.length)
+                        print("Radius",self.link_modifier.element.visuals[0].geometry.cylinder.radius )
+                        print("Principal Dimension", new_length)
                     self.change_dimension_and_keep_offsets(new_length)
+
                 if(geometry_type == geometry.Geometry.BOX):
                     self.link_modifier.element.visuals[0].geometry.box.size[0] = modifications.dimension.value[0]*self.link_modifier.element.visuals[0].geometry.box.size[0]
                     self.link_modifier.element.visuals[0].geometry.box.size[1] = modifications.dimension.value[1]*self.link_modifier.element.visuals[0].geometry.box.size[1]
@@ -229,6 +244,7 @@ class FixedOffsetModifier():
                     self.link_modifier.element.visuals[0].geometry.sphere.radius = modification.dimension.value[0]*self.link_modifier.element.visuals[0].geometry.sphere.radius
                     new_length = self.get_significant_length()
                     self.change_dimension_and_keep_offsets(new_length)
+        
         # elif modifications.dimension:
         #     original_length = self.get_significant_length()
         #     if modifications.dimension.absolute:
@@ -238,35 +254,53 @@ class FixedOffsetModifier():
 
     def change_dimension_and_keep_offsets(self, new_length):
         """Changes the dimension of the link while keeping the offset between it and both parent and child joints"""
-        parent_joint_offset, child_joint_offset = self.calculate_offsets()
 
         link_modification = Modification()
 
         link_visual_origin = self.get_link_origin(self.link)
         link_visual_origin_z = link_visual_origin[2]
-        if parent_joint_offset is not None:
+        if self.parent_joint_offset is not None:
             # Using formula: v_o' = s_o + v_l' * sign(j_o) / 2 
-            new_link_origin = parent_joint_offset.z + new_length / 2
+            new_link_origin = (self.parent_joint_offset.z + new_length / 2)
             link_modification.add_position(new_link_origin, absolute=True)
         else:
             # for the joint calculations, if there is no parent we position it as if it were in the center of the visual
             # s_o = v_o - v_l * sign(j_o) / 2   with  v_o = 0
-            parent_joint_offset = Offset(z=-new_length / 2)
+            self.parent_joint_offset = Offset(z=-new_length / 2)
 
         geometry_type, _ = self.get_geometry(self.link_modifier.get_visual())
-        if geometry_type == Geometry.SPHERE:        
-            link_modification.add_radius(new_length / 2, absolute=True)
-        else:        
-            link_modification.add_dimension(new_length, absolute=True)
+        # if geometry_type == Geometry.SPHERE:        
+        #     link_modification.add_radius(new_length / 2, absolute=True)
+        # else:        
+        #     link_modification.add_dimension(new_length, absolute=True)
 
         self.link_modifier.modify(link_modification)
-
-        for item in child_joint_offset:
+        
+        for item in self.child_joint_offset:
             # j_o' = s_o + v_l' * sign(j_o) - e_o
-                new_child_joint_origin = new_length + parent_joint_offset.z - item.z
-
+                j_0 = item.joint.origin[2,3]
+                # new_child_joint_origin = ((new_length*math.copysign(1,j_0))/2 + - item.z)
+                if(item.joint.name ==  "l_hip_yaw"):
+                    print("computing new origin")
+                    print("vo'", new_link_origin)
+                    print("j_0", j_0)
+                    print(new_length)
+                    print(new_length/2*math.copysign(1,j_0))
+                    print(self.parent_joint_offset.z)
+                    print(item.z)
+                # new_child_joint_origin =  new_length/2 + new_length/2*math.copysign(1,j_0) + self.parent_joint_offset.z -item.z
+                # new_child_joint_origin = item.z - (self.parent_joint_offset.z - new_length)
+                new_child_joint_origin = new_link_origin+ new_length/2 - item.z
                 joint_modification = Modification()
-
+                if(item.joint.name ==  "l_hip_yaw" or item.joint.name == 'r_hip_yaw'):
+                    print("******JOINT******")
+                    print(item.joint.name)
+                    print("parent joint offset", self.parent_joint_offset.z)
+                    print(item.z)
+                    print("new lenght",new_length)
+                    print("Old", item.joint.origin[2,3])
+                    print("New", new_child_joint_origin)
+                    # new_child_joint_origin = - new_child_joint_origin
                 joint_modification.add_position(new_child_joint_origin, absolute=True)
 
                 corresponding_modifier = [joint_modifier for joint_modifier in self.joint_modifier_list if joint_modifier.element == item.joint][0]
