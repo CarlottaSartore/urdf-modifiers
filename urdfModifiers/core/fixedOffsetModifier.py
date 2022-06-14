@@ -176,7 +176,7 @@ class FixedOffsetModifier():
         if self.parent_joint:
             parent_joint_offset = Offset(joint=self.parent_joint, z= (link_visual_origin_z - link_length / 2))
         else:
-            parent_joint_offset = None
+            parent_joint_offset = Offset(z=-link_length / 2)
         
         child_joint_offset = []
         for item in self.child_joint_list:
