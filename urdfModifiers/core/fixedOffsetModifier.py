@@ -103,7 +103,7 @@ class FixedOffsetModifier():
         self.child_joint_list = [corresponding_joint for corresponding_joint in robot.joints if corresponding_joint.parent == link.name]
         self.joint_modifier_list = [JointModifier(item, axis = Side.Z) for item in self.child_joint_list]
         self.parent_joint_offset, self.child_joint_offset = self.calculate_offsets()
-        # self.check_if_z_parallel()
+        self.check_if_z_parallel()
 
     @classmethod
     def from_name(cls, link_name, robot):
@@ -169,6 +169,7 @@ class FixedOffsetModifier():
         link_length = self.get_significant_length()
 
         link_visual_origin = self.get_link_origin(self.link)
+        print("IMPORTANT", link_visual_origin)
         link_visual_origin_z = link_visual_origin[2]
 
         # Using formula: s_o = v_o - v_l / 2
@@ -182,9 +183,13 @@ class FixedOffsetModifier():
             # Using formula: e_o = v_o + v_l * sign(j_o) / 2 - j_o
             child_joint_origin = self.get_joint_origin(item)
             child_joint_origin_z = child_joint_origin[2]
+            if(item.name ==  "l_hip_yaw"):
+                print(item.name)
+                print("IMPORTANT", child_joint_origin)
+                print("v_o", link_visual_origin_z)
             # child_joint_offset.append(Offset(joint=item, z = link_visual_origin_z + link_length/ 2*math.copysign(1, child_joint_origin_z) - child_joint_origin_z))     
             # child_joint_offset.append(Offset(joint=item, z = parent_joint_offset.z +link_length*math.copysign(1,child_joint_origin_z) - child_joint_origin_z*math.copysign(1,child_joint_origin_z)))
-            child_joint_offset.append(Offset(joint = item, z = link_length+ parent_joint_offset.z - child_joint_origin_z*math.copysign(1,child_joint_origin_z)))
+            child_joint_offset.append(Offset(joint = item, z = link_length+parent_joint_offset.z - child_joint_origin_z))
         return parent_joint_offset, child_joint_offset
 
     def modify(self, modifications):
@@ -279,6 +284,7 @@ class FixedOffsetModifier():
         for item in self.child_joint_offset:
             # j_o' = s_o + v_l' * sign(j_o) - e_o
                 j_0 = item.joint.origin[2,3]
+                print("IMPORTANT", item.joint.origin)
                 # new_child_joint_origin = ((new_length*math.copysign(1,j_0))/2 + - item.z)
                 if(item.joint.name ==  "l_hip_yaw"):
                     print("computing new origin")
