@@ -176,7 +176,7 @@ class FixedOffsetModifier():
         if self.parent_joint:
             parent_joint_offset = Offset(joint=self.parent_joint, z= (link_visual_origin_z - link_length / 2))
         else:
-            parent_joint_offset = Offset(z=-link_length / 2)
+            parent_joint_offset = Offset(z=0)
         
         child_joint_offset = []
         for item in self.child_joint_list:
@@ -246,7 +246,7 @@ class FixedOffsetModifier():
                     new_length = self.get_significant_length()
                     self.change_dimension_and_keep_offsets(new_length)
                 if(geometry_type == geometry.Geometry.SPHERE):
-                    self.link_modifier.element.visuals[0].geometry.sphere.radius = modification.dimension.value[0]*self.link_modifier.element.visuals[0].geometry.sphere.radius
+                    self.link_modifier.element.visuals[0].geometry.sphere.radius = modifications.dimension.value[0]*self.link_modifier.element.visuals[0].geometry.sphere.radius
                     new_length = self.get_significant_length()
                     self.change_dimension_and_keep_offsets(new_length)
         

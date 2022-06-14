@@ -304,7 +304,7 @@ class LinkModifierTests(unittest.TestCase):
                          original_link.collisions[0].geometry.box.size[1])
 
         self.assertEqual(modified_link.collisions[0].geometry.box.size[2], 
-                         original_link.collisions[0].geometry.box.size[2] * 2)
+                         original_link.collisions[0].geometry.box.size[2]* 2)
 
         # check that origin is not being modified
         self.assertEqual(modified_link.visuals[0].origin.all(),
@@ -872,7 +872,7 @@ class FixedOffsetModifierTests(unittest.TestCase):
         modifier = FixedOffsetModifier.from_name('aligned_link', self.modified_robot)
 
         modification = Modification()
-        modification.add_dimension(2, absolute=False)
+        modification.add_dimension([2,2], absolute=False)
 
         parent_joint_offset, child_joint_offset = modifier.calculate_offsets()
 
@@ -909,7 +909,7 @@ class FixedOffsetModifierTests(unittest.TestCase):
         modifier = FixedOffsetModifier.from_name('aligned_link', self.modified_robot)
 
         modification = Modification()
-        modification.add_dimension(3, absolute=True)
+        modification.add_dimension([3,3,3], absolute=True)
 
         parent_joint_offset, child_joint_offset = modifier.calculate_offsets()
 
@@ -948,52 +948,52 @@ class FixedOffsetModifierTests(unittest.TestCase):
 
         self.assertTrue('Cannot create FixedOffsetModifier for a setup that is not z-parallel' in str(context.exception))
 
-    # def test_works_with_no_child_joint(self):
+    def test_works_with_no_child_joint(self):
 
-    #     modifier = FixedOffsetModifier.from_name('connector_link_2', self.modified_robot)
+        modifier = FixedOffsetModifier.from_name('connector_link_2', self.modified_robot)
 
-    #     modification = Modification()
-    #     modification.add_dimension(2, absolute=False)
+        modification = Modification()
+        modification.add_dimension([2,2], absolute=False)
 
-    #     parent_joint_offset, child_joint_offset = modifier.calculate_offsets()
+        parent_joint_offset, child_joint_offset = modifier.calculate_offsets()
 
-    #     modifier.modify(modification)
+        modifier.modify(modification)
 
-    #     modified_parent_joint_offset, modified_child_joint_offset = modifier.calculate_offsets()
+        modified_parent_joint_offset, modified_child_joint_offset = modifier.calculate_offsets()
 
-    #     original_link = [link for link in self.original_robot.links if link.name == 'connector_link_2'][0]
-    #     modified_link = [link for link in self.modified_robot.links if link.name == 'connector_link_2'][0]
+        original_link = [link for link in self.original_robot.links if link.name == 'connector_link_2'][0]
+        modified_link = [link for link in self.modified_robot.links if link.name == 'connector_link_2'][0]
 
-    #     original_parent_joint = [joint for joint in self.original_robot.joints if joint.child == 'connector_link_2'][0]
-    #     modified_parent_joint = [joint for joint in self.modified_robot.joints if joint.child == 'connector_link_2'][0]
+        original_parent_joint = [joint for joint in self.original_robot.joints if joint.child == 'connector_link_2'][0]
+        modified_parent_joint = [joint for joint in self.modified_robot.joints if joint.child == 'connector_link_2'][0]
 
-    #     self.assertEqual(modified_link.visuals[0].geometry.sphere.radius,
-    #                      original_link.visuals[0].geometry.sphere.radius * 2)
+        self.assertEqual(modified_link.visuals[0].geometry.sphere.radius,
+                         original_link.visuals[0].geometry.sphere.radius * 2)
 
-    #     self.assertEqual(matrix_to_xyz_rpy(modified_link.visuals[0].origin)[0],
-    #                      matrix_to_xyz_rpy(original_link.visuals[0].origin)[0])
+        self.assertEqual(matrix_to_xyz_rpy(modified_link.visuals[0].origin)[0],
+                         matrix_to_xyz_rpy(original_link.visuals[0].origin)[0])
 
-    #     self.assertEqual(matrix_to_xyz_rpy(modified_link.visuals[0].origin)[1],
-    #                      matrix_to_xyz_rpy(original_link.visuals[0].origin)[1])
+        self.assertEqual(matrix_to_xyz_rpy(modified_link.visuals[0].origin)[1],
+                         matrix_to_xyz_rpy(original_link.visuals[0].origin)[1])
 
-    #     self.assertEqual(matrix_to_xyz_rpy(original_parent_joint.origin)[2],
-    #                      matrix_to_xyz_rpy(modified_parent_joint.origin)[2])
+        self.assertEqual(matrix_to_xyz_rpy(original_parent_joint.origin)[2],
+                         matrix_to_xyz_rpy(modified_parent_joint.origin)[2])
 
-    #     self.assertEqual(modified_parent_joint_offset.z,
-    #                      parent_joint_offset.z)
+        self.assertEqual(modified_parent_joint_offset.z,
+                         parent_joint_offset.z)
 
-    #     self.assertEqual(len(child_joint_offset),
-    #                      0)
+        self.assertEqual(len(child_joint_offset),
+                         0)
         
-    #     self.assertEqual(len(modified_child_joint_offset),
-    #                      0)
+        self.assertEqual(len(modified_child_joint_offset),
+                         0)
 
     # def test_works_with_no_parent_joint(self):
 
     #     modifier = FixedOffsetModifier.from_name('base_link', self.modified_robot)
 
     #     modification = Modification()
-    #     modification.add_dimension(2, absolute=False)
+    #     modification.add_dimension([2,2], absolute=False)
 
     #     parent_joint_offset, child_joint_offset = modifier.calculate_offsets()
 
@@ -1016,11 +1016,11 @@ class FixedOffsetModifierTests(unittest.TestCase):
     #     self.assertEqual(modified_child_joint_offset,
     #                      child_joint_offset)
 
-    #     self.assertEqual(parent_joint_offset,
-    #                      None)
-        
+    #     self.assertEqual(parent_joint_offset.z,
+    #                      0.0)
+    #     print(modified_parent_joint_offset)
     #     self.assertEqual(modified_parent_joint_offset,
-    #                      None)
+    #                      0.0)
 
     def test_joint_type(self):
         modifier = JointModifier.from_name("aligned_link_joint_after", self.modified_robot) 
