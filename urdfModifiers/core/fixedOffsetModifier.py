@@ -188,7 +188,7 @@ class FixedOffsetModifier():
             child_joint_origin = self.get_joint_origin(item)
             child_joint_origin_z = child_joint_origin[2]
             if(child_joint_origin_z<0):
-                child_joint_offset.append(Offset(joint = item, z = link_length-parent_joint_offset.z +child_joint_origin_z))
+                child_joint_offset.append(Offset(joint = item, z = -(link_length-parent_joint_offset.z +child_joint_origin_z)))
             else:
                 child_joint_offset.append(Offset(joint = item, z = link_length+parent_joint_offset.z - child_joint_origin_z))
         
