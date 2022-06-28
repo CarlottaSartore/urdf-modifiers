@@ -169,7 +169,6 @@ class FixedOffsetModifier():
         link_length = self.get_significant_length()
 
         link_visual_origin = self.get_link_origin(self.link)
-        print("IMPORTANT", link_visual_origin)
         link_visual_origin_z = link_visual_origin[2]
         if(link_visual_origin_z<0): 
             if self.parent_joint:
@@ -287,11 +286,6 @@ class FixedOffsetModifier():
                 self.parent_joint_offset = Offset(z=-new_length / 2)
 
         geometry_type, _ = self.get_geometry(self.link_modifier.get_visual())
-        # if geometry_type == Geometry.SPHERE:        
-        #     link_modification.add_radius(new_length / 2, absolute=True)
-        # else:        
-        #     link_modification.add_dimension(new_length, absolute=True)
-
         self.link_modifier.modify(link_modification)
         
         for item in self.child_joint_offset:
