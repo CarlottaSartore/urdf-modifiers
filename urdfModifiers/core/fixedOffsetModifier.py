@@ -103,7 +103,7 @@ class FixedOffsetModifier():
         self.child_joint_list = [corresponding_joint for corresponding_joint in robot.joints if corresponding_joint.parent == link.name]
         self.joint_modifier_list = [JointModifier(item, axis = Side.Z) for item in self.child_joint_list]
         self.parent_joint_offset, self.child_joint_offset = self.calculate_offsets()
-        self.check_if_z_parallel()
+        # self.check_if_z_parallel()
 
     @classmethod
     def from_name(cls, link_name, robot):
@@ -225,20 +225,9 @@ class FixedOffsetModifier():
                     self.change_dimension_and_keep_offsets(new_length)
             else: 
                 if(geometry_type == geometry.Geometry.CYLINDER): 
-                    if(self.link_modifier.element.name == "r_lower_leg"):
-                        print("**** OLD ****")
-                        print("lower leg")
-                        print("Lenght", self.link_modifier.element.visuals[0].geometry.cylinder.length)
-                        print("Radius",self.link_modifier.element.visuals[0].geometry.cylinder.radius )
-                        print("Modification", modifications.dimension.value)
                     self.link_modifier.element.visuals[0].geometry.cylinder.length = modifications.dimension.value[0]*self.link_modifier.element.visuals[0].geometry.cylinder.length
                     self.link_modifier.element.visuals[0].geometry.cylinder.radius = modifications.dimension.value[1]*self.link_modifier.element.visuals[0].geometry.cylinder.radius
                     new_length = self.get_significant_length()
-                    if(self.link_modifier.element.name == "r_lower_leg"):
-                        print("*** NEW *****")
-                        print("Lenght", self.link_modifier.element.visuals[0].geometry.cylinder.length)
-                        print("Radius",self.link_modifier.element.visuals[0].geometry.cylinder.radius )
-                        print("Principal Dimension", new_length)
                     self.change_dimension_and_keep_offsets(new_length)
 
                 if(geometry_type == geometry.Geometry.BOX):
